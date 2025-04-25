@@ -2,183 +2,116 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>发圈对对碰 充值审核系统</title>
+  <title>发圈对对碰 - 登录注册</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f0f2f5; padding: 20px; }
-    .view { max-width: 500px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    h2 { text-align: center; margin-bottom: 16px; }
-    input, button { width: 100%; padding: 10px; margin: 8px 0; font-size: 16px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-    th, td { padding: 8px; border: 1px solid #ddd; text-align: center; }
-    .hidden { display: none; }
-    .purchase-btn { margin: 4px 0; }
+    body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 20px; }
+    .container { max-width: 400px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    h2 { text-align: center; margin-bottom: 20px; }
+    input { width: 100%; padding: 8px; margin: 8px 0; }
+    button { width: 100%; padding: 10px; margin: 10px 0; }
+    #userDashboard, #adminDashboard { display: none; }
   </style>
 </head>
 <body>
-  <!-- 登录视图 -->
-  <div id="loginView" class="view">
-    <h2>登录</h2>
-    <input id="loginPhone" placeholder="手机号" />
-    <input id="loginPass" type="password" placeholder="密码" />
-    <button id="loginBtn">登录</button>
-    <button id="showRegisterBtn">注册新账号</button>
+  <div class="container">
+    <div id="loginView">
+      <h2>登录</h2>
+      <input id="loginPhone" placeholder="手机号"><br>
+      <input id="loginPass" type="password" placeholder="密码"><br>
+      <button id="loginBtn">登录</button>
+      <p>没有账号？<a href="#" onclick="showRegister()">注册</a></p>
+    </div>
+
+    <div id="registerView" style="display:none">
+      <h2>注册</h2>
+      <input id="regPhone" placeholder="手机号"><br>
+      <input id="regPass" type="password" placeholder="密码"><br>
+      <button id="registerBtn">注册</button>
+      <p>已有账号？<a href="#" onclick="showLogin()">登录</a></p>
+    </div>
+
+    <div id="userDashboard">
+      <h2>欢迎回来！</h2>
+      <p id="userInfo"></p>
+    </div>
+
+    <div id="adminDashboard">
+      <h2>管理员后台</h2>
+      <p>（后续开发）</p>
+    </div>
   </div>
 
-  <!-- 注册视图 -->
-  <div id="registerView" class="view hidden">
-    <h2>注册</h2>
-    <input id="regPhone" placeholder="手机号" />
-    <input id="regPass" type="password" placeholder="密码" />
-    <button id="registerBtn">注册</button>
-    <button id="backToLoginBtn">返回登录</button>
-  </div>
+<script>
+const apiBase = 'https://api.duidui.uk';
 
-  <!-- 用户面板 -->
-  <div id="userDashboard" class="view hidden">
-    <h2>用户面板</h2>
-    <p>欢迎，<span id="userPhoneDisplay"></span></p>
-    <button id="logoutBtn">退出</button>
-    <div id="userContent"></div>
-  </div>
+function showLogin() {
+  document.getElementById('loginView').style.display = 'block';
+  document.getElementById('registerView').style.display = 'none';
+  document.getElementById('userDashboard').style.display = 'none';
+}
 
-  <!-- 管理员面板 -->
-  <div id="adminDashboard" class="view hidden">
-    <h2>管理员面板</h2>
-    <button id="adminLogoutBtn">退出</button>
-    <h3>订单列表</h3>
-    <table>
-      <thead>
-        <tr><th>ID</th><th>手机号</th><th>金额(元)</th><th>状态</th><th>操作</th></tr>
-      </thead>
-      <tbody id="ordersTableBody"></tbody>
-    </table>
-  </div>
+function showRegister() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('registerView').style.display = 'block';
+  document.getElementById('userDashboard').style.display = 'none';
+}
 
-  <script>
-    // 初始化数据
-    function loadData() {
-      if (!localStorage.getItem('accounts')) {
-        const defaultAccounts = [{ phone: 'admin', password: 'admin', role: 'admin' }];
-        localStorage.setItem('accounts', JSON.stringify(defaultAccounts));
-      }
-      if (!localStorage.getItem('orders')) {
-        localStorage.setItem('orders', JSON.stringify([]));
-      }
+function showUserDashboard(user) {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('registerView').style.display = 'none';
+  document.getElementById('userDashboard').style.display = 'block';
+  document.getElementById('userInfo').innerHTML = `手机号: ${user.phone}<br>余额: ${user.balance}`;
+}
+
+// 注册按钮点击
+document.getElementById('registerBtn').onclick = async () => {
+  const phone = document.getElementById('regPhone').value.trim();
+  const pass = document.getElementById('regPass').value;
+  if (!phone || !pass) return alert('请填写手机号和密码');
+
+  try {
+    const res = await fetch(apiBase + '/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: phone, password: pass })
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      alert('注册成功，请登录');
+      showLogin();
+    } else {
+      alert(data.message);
     }
-    function saveAccounts(accounts) { localStorage.setItem('accounts', JSON.stringify(accounts)); }
-    function saveOrders(orders) { localStorage.setItem('orders', JSON.stringify(orders)); }
-    function getAccounts() { return JSON.parse(localStorage.getItem('accounts')); }
-    function getOrders() { return JSON.parse(localStorage.getItem('orders')); }
+  } catch (err) {
+    console.error(err);
+    alert('注册失败，请稍后重试');
+  }
+};
 
-    // 页面显示控制
-    function showLogin() { document.getElementById('loginView').classList.remove('hidden'); document.getElementById('registerView').classList.add('hidden'); document.getElementById('userDashboard').classList.add('hidden'); document.getElementById('adminDashboard').classList.add('hidden'); }
-    function showRegister() { document.getElementById('loginView').classList.add('hidden'); document.getElementById('registerView').classList.remove('hidden'); }
-    function showUserDashboard() {
-      document.getElementById('loginView').classList.add('hidden');
-      document.getElementById('registerView').classList.add('hidden');
-      document.getElementById('adminDashboard').classList.add('hidden');
-      document.getElementById('userDashboard').classList.remove('hidden');
-      renderUserContent();
+// 登录按钮点击
+document.getElementById('loginBtn').onclick = async () => {
+  const phone = document.getElementById('loginPhone').value.trim();
+  const pass = document.getElementById('loginPass').value;
+
+  try {
+    const res = await fetch(apiBase + '/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: phone, password: pass })
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      sessionStorage.setItem('currentUser', JSON.stringify({ phone: phone, role: 'user', balance: data.balance }));
+      showUserDashboard({ phone: phone, balance: data.balance });
+    } else {
+      alert(data.message);
     }
-    function showAdminDashboard() {
-      document.getElementById('loginView').classList.add('hidden');
-      document.getElementById('registerView').classList.add('hidden');
-      document.getElementById('userDashboard').classList.add('hidden');
-      document.getElementById('adminDashboard').classList.remove('hidden');
-      renderOrders();
-    }
+  } catch (err) {
+    console.error(err);
+    alert('登录失败，请稍后重试');
+  }
+};
+</script>
 
-    // 渲染用户内容
-    function renderUserContent() {
-      const user = JSON.parse(sessionStorage.getItem('currentUser'));
-      document.getElementById('userPhoneDisplay').textContent = user.phone;
-      const orders = getOrders().filter(o => o.phone === user.phone);
-      const pending = orders.find(o => o.status === 'pending');
-      const approved = orders.filter(o => o.status === 'approved');
-      const packMap = { '29.9': 2, '49.9': 3, '79.9': 5, '169.9': 10, '299.9': 20 };
-      const balance = approved.reduce((sum, o) => sum + (packMap[o.packagePrice] || 0), 0);
-
-      let html = `<p>当前余额：${balance} 包</p>`;
-      if (balance > 0) {
-        html += `<button id="playBtn">开始游戏</button>`;
-      }
-      if (pending) {
-        html += `<p>您有待审核订单，请稍后。</p>`;
-      } else {
-        html += `<h4>购买套餐</h4>`;
-        Object.keys(packMap).forEach(price => {
-          html += `<button class="purchase-btn" data-price="${price}">购买 ${price} 元套餐</button>`;
-        });
-      }
-      document.getElementById('userContent').innerHTML = html;
-
-      // 绑定购买事件
-      document.querySelectorAll('.purchase-btn').forEach(btn => {
-        btn.onclick = () => {
-          const price = btn.getAttribute('data-price');
-          const orders = getOrders();
-          orders.push({ id: Date.now(), phone: user.phone, packagePrice: price, status: 'pending' });
-          saveOrders(orders);
-          showUserDashboard();
-        };
-      });
-      const playBtn = document.getElementById('playBtn');
-      if (playBtn) {
-        playBtn.onclick = () => alert('游戏开始，祝您游戏愉快！');
-      }
-    }
-
-    // 渲染订单列表
-    function renderOrders() {
-      const tbody = document.getElementById('ordersTableBody');
-      const orders = getOrders();
-      tbody.innerHTML = '';
-      orders.forEach(o => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${o.id}</td><td>${o.phone}</td><td>${o.packagePrice}</td><td>${o.status}</td><td></td>`;
-        if (o.status === 'pending') {
-          const btn = document.createElement('button');
-          btn.textContent = '通过';
-          btn.onclick = () => {
-            o.status = 'approved';
-            saveOrders(orders);
-            renderOrders();
-          };
-          tr.children[4].appendChild(btn);
-        }
-        tbody.appendChild(tr);
-      });
-    }
-
-    // 事件绑定
-    window.onload = () => {
-      loadData();
-      document.getElementById('loginBtn').onclick = () => {
-        const phone = document.getElementById('loginPhone').value.trim();
-        const pass = document.getElementById('loginPass').value;
-        const accounts = getAccounts();
-        const acct = accounts.find(a => a.phone === phone && a.password === pass);
-        if (acct) {
-          sessionStorage.setItem('currentUser', JSON.stringify({ phone: acct.phone, role: acct.role }));
-          if (acct.role === 'admin') showAdminDashboard(); else showUserDashboard();
-        } else alert('用户名或密码错误');
-      };
-      document.getElementById('showRegisterBtn').onclick = showRegister;
-      document.getElementById('backToLoginBtn').onclick = showLogin;
-      document.getElementById('registerBtn').onclick = () => {
-        const phone = document.getElementById('regPhone').value.trim();
-        const pass = document.getElementById('regPass').value;
-        if (!phone || !pass) return alert('请填写手机号和密码');
-        const accounts = getAccounts();
-        if (accounts.find(a => a.phone === phone)) return alert('手机号已注册');
-        accounts.push({ phone, password: pass, role: 'user' });
-        saveAccounts(accounts);
-        alert('注册成功，请登录');
-        showLogin();
-      };
-      document.getElementById('logoutBtn').onclick = () => { sessionStorage.removeItem('currentUser'); showLogin(); };
-      document.getElementById('adminLogoutBtn').onclick = () => { sessionStorage.removeItem('currentUser'); showLogin(); };
-    };
-  </script>
 </body>
 </html>
