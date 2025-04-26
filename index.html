@@ -1,117 +1,182 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <title>发圈对对碰 - 登录注册</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 20px; }
-    .container { max-width: 400px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    h2 { text-align: center; margin-bottom: 20px; }
-    input { width: 100%; padding: 8px; margin: 8px 0; }
-    button { width: 100%; padding: 10px; margin: 10px 0; }
-    #userDashboard, #adminDashboard { display: none; }
-  </style>
+<meta charset="UTF-8">
+<title>发圈对对碰 - 登录/游戏</title>
+<style>
+/* —— 样式完全沿用，只略压缩 —— */
+body{font-family:Arial,Helvetica,sans-serif;background:#f0f2f5;margin:0}
+.container{max-width:900px;margin:0 auto;padding:20px}
+.view{display:none}
+.auth-container{max-width:400px;margin:100px auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.auth-container h2{text-align:center;margin-bottom:20px}
+.auth-container input,.auth-container button{width:100%;padding:10px;margin:8px 0;box-sizing:border-box}
+.auth-container a{color:#3399ff;cursor:pointer}
+.topbar{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:10px 20px;box-shadow:0 2px 4px rgba(0,0,0,.1);position:relative}
+#accountPanel{position:absolute;top:50px;right:20px;width:220px;background:#fff;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.1);overflow:hidden;height:0;transition:all .3s}
+#accountPanel.open{height:120px;padding:10px}
+.main{display:flex;margin-top:20px}
+.sidebar{width:220px;background:#fff;padding:20px;border-radius:4px;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+.sidebar input,.sidebar button{width:100%;padding:8px;margin:10px 0;box-sizing:border-box}
+.content{flex:1;padding:0 20px}
+#gameArea{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
+.cell{width:80px;height:80px;border-radius:50%;display:flex;justify-content:center;align-items:center;font-weight:bold;color:#fff;cursor:default}
+.highlight-triple{box-shadow:0 0 0 4px rgba(255,0,0,.7)}
+.highlight-pair{box-shadow:0 0 0 4px rgba(0,0,255,.7)}
+#orderList{list-style:none;padding:0}
+#orderList li{background:#fff;margin-bottom:10px;padding:10px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+#orderList button{float:right}
+</style>
 </head>
 <body>
-  <div class="container">
-    <div id="loginView">
-      <h2>登录</h2>
-      <input id="loginPhone" placeholder="手机号"><br>
-      <input id="loginPass" type="password" placeholder="密码"><br>
-      <button id="loginBtn">登录</button>
-      <p>没有账号？<a href="#" onclick="showRegister()">注册</a></p>
-    </div>
+<div class="container">
+  <!-- 登录 -->
+  <div id="loginView" class="view auth-container">
+    <h2>登录</h2>
+    <input id="loginPhone" placeholder="手机号 / admin">
+    <input id="loginPass"  type="password" placeholder="密码">
+    <button id="loginBtn">登录</button>
+    <p>没有账号？<a id="toRegister">注册</a></p>
+  </div>
 
-    <div id="registerView" style="display:none">
-      <h2>注册</h2>
-      <input id="regPhone" placeholder="手机号"><br>
-      <input id="regPass" type="password" placeholder="密码"><br>
-      <button id="registerBtn">注册</button>
-      <p>已有账号？<a href="#" onclick="showLogin()">登录</a></p>
-    </div>
+  <!-- 注册 -->
+  <div id="registerView" class="view auth-container">
+    <h2>注册</h2>
+    <input id="regPhone" placeholder="手机号">
+    <input id="regPass"  type="password" placeholder="密码(≥6位)">
+    <button id="registerBtn">注册</button>
+    <p>已有账号？<a id="toLogin">登录</a></p>
+  </div>
 
-    <div id="userDashboard">
-      <h2>欢迎回来！</h2>
-      <p id="userInfo"></p>
+  <!-- 游戏界面 -->
+  <div id="gameView" class="view">
+    <div class="topbar">
+      <div>发圈对对碰</div>
+      <div id="accountToggle" style="cursor:pointer">我的账户</div>
+      <div id="accountPanel">
+        <div>手机号: <span id="accountPhone"></span></div>
+        <div>余额: <span id="accountBalance"></span></div>
+        <button id="logoutBtn">退出登录</button>
+      </div>
     </div>
-
-    <div id="adminDashboard">
-      <h2>管理员后台</h2>
-      <p>（后续开发）</p>
+    <div class="main">
+      <div class="sidebar">
+        <h3>充值</h3>
+        <input id="rechargeAmount" type="number" min="1" placeholder="充值金额">
+        <button id="rechargeBtn">充值</button>
+        <p id="rechargeStatus" style="color:#f60"></p>
+        <button id="refreshBalance">刷新余额</button>
+      </div>
+      <div class="content">
+        <button id="startGameBtn">开始游戏</button>
+        <div id="gameArea"></div>
+        <div id="scoreBoard">得分: <span id="score">0</span></div>
+      </div>
     </div>
   </div>
 
+  <!-- 管理员界面 -->
+  <div id="adminView" class="view">
+    <div class="topbar">
+      <div>管理员审核</div>
+      <button id="logoutAdmin">退出登录</button>
+    </div>
+    <div class="content">
+      <h3>待审订单</h3>
+      <ul id="orderList"></ul>
+    </div>
+  </div>
+</div>
+
 <script>
-const apiBase = 'https://api.duidui.uk';
+const apiBase = "https://api.duidui.uk";        // 后端端口保持 5060
+const COLORS  = ["红","橙","黄","绿","蓝","紫","粉","黑","白","灰"];
 
-function showLogin() {
-  document.getElementById('loginView').style.display = 'block';
-  document.getElementById('registerView').style.display = 'none';
-  document.getElementById('userDashboard').style.display = 'none';
-}
+/* ---------- 工具 ---------- */
+function show(id){["loginView","registerView","gameView","adminView"].forEach(v=>{document.getElementById(v).style.display=v===id?"block":"none"});}
+function setUser(u){sessionStorage.setItem("u",JSON.stringify(u));}
+function getUser(){return JSON.parse(sessionStorage.getItem("u")||"null");}
+function clearUser(){sessionStorage.removeItem("u");}
 
-function showRegister() {
-  document.getElementById('loginView').style.display = 'none';
-  document.getElementById('registerView').style.display = 'block';
-  document.getElementById('userDashboard').style.display = 'none';
-}
+/* ---------- 页面初始化 ---------- */
+window.onload = ()=>{const u=getUser();u?afterLogin(u.role,u.phone):show("loginView");};
 
-function showUserDashboard(user) {
-  document.getElementById('loginView').style.display = 'none';
-  document.getElementById('registerView').style.display = 'none';
-  document.getElementById('userDashboard').style.display = 'block';
-  document.getElementById('userInfo').innerHTML = `手机号: ${user.phone}<br>余额: ${user.balance}`;
-}
+/* ---------- 登录 / 注册 ---------- */
+toRegister.onclick = ()=>show("registerView");
+toLogin.onclick    = ()=>show("loginView");
 
-// 注册按钮点击
-document.getElementById('registerBtn').onclick = async () => {
-  const phone = document.getElementById('regPhone').value.trim();
-  const pass = document.getElementById('regPass').value;
-  if (!phone || !pass) return alert('请填写手机号和密码');
-
-  try {
-    const res = await fetch(apiBase + '/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: phone, password: pass })
-    });
-    const data = await res.json();
-    if (data.status === 'success') {
-      alert('注册成功，请登录');
-      showLogin();
-    } else {
-      alert(data.message);
-    }
-  } catch (err) {
-    console.error(err);
-    alert('注册失败，请稍后重试');
-  }
+registerBtn.onclick = async ()=>{
+  const phone=regPhone.value.trim(),pwd=regPass.value;
+  if(!phone||!pwd)return alert("请填写手机号和密码");
+  const r=await fetch(apiBase+"/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phone,password:pwd})});
+  const d=await r.json(); d.status==="success"? (alert("注册成功！"),show("loginView")):alert(d.message);
 };
 
-// 登录按钮点击
-document.getElementById('loginBtn').onclick = async () => {
-  const phone = document.getElementById('loginPhone').value.trim();
-  const pass = document.getElementById('loginPass').value;
+loginBtn.onclick = async ()=>{
+  const phone=loginPhone.value.trim(),pwd=loginPass.value;
+  if(!phone||!pwd)return alert("请填写手机号和密码");
+  const r=await fetch(apiBase+"/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phone,password:pwd})});
+  const d=await r.json(); d.status==="success"?afterLogin(d.role||"user",phone):alert(d.message);
+};
 
-  try {
-    const res = await fetch(apiBase + '/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: phone, password: pass })
-    });
-    const data = await res.json();
-    if (data.status === 'success') {
-      sessionStorage.setItem('currentUser', JSON.stringify({ phone: phone, role: 'user', balance: data.balance }));
-      showUserDashboard({ phone: phone, balance: data.balance });
-    } else {
-      alert(data.message);
-    }
-  } catch (err) {
-    console.error(err);
-    alert('登录失败，请稍后重试');
-  }
+/* ---------- 登录后 ---------- */
+function afterLogin(role,phone){
+  setUser({role,phone});
+  if(role==="admin"){loadOrders();show("adminView");}
+  else{accountPhone.textContent=phone;fetchProfile();show("gameView");}
+}
+
+/* ---------- 退出 ---------- */
+logoutBtn.onclick = logoutAdmin.onclick = ()=>{
+  clearUser();show("loginView");
+};
+
+/* ---------- 账户面板 ---------- */
+accountToggle.onclick = ()=>accountPanel.classList.toggle("open");
+
+/* ---------- 余额 ---------- */
+refreshBalance.onclick = fetchProfile;
+async function fetchProfile(){
+  const u=getUser(); if(!u)return;
+  const r=await fetch(`${apiBase}/profile?phone=${u.phone}`);
+  const d=await r.json(); if(d.status==="success")accountBalance.textContent=d.balance.toFixed(2);
+}
+
+/* ---------- 充值 ---------- */
+rechargeBtn.onclick = async ()=>{
+  const amt=parseFloat(rechargeAmount.value); if(isNaN(amt)||amt<=0)return alert("请输入有效金额");
+  rechargeStatus.textContent="客服审核中，请稍后刷新余额";
+  const u=getUser();
+  await fetch(apiBase+"/order",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phone:u.phone,amount:amt})});
+};
+
+/* ---------- 管理员 ---------- */
+async function loadOrders(){
+  const r=await fetch(apiBase+"/orders"); const d=await r.json();
+  if(d.status!=="success")return;
+  orderList.innerHTML="";
+  d.orders.forEach(o=>{
+    const li=document.createElement("li"); li.innerHTML=`手机号:${o.phone} 金额:${o.amount}`;
+    const b=document.createElement("button"); b.textContent="批准"; b.onclick=()=>approve(o.id);
+    li.appendChild(b); orderList.appendChild(li);
+  });
+}
+async function approve(id){
+  const r=await fetch(apiBase+"/order/approve",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({orderId:id})});
+  const d=await r.json(); d.status==="success"?loadOrders():alert(d.message);
+}
+
+/* ---------- 简单九宫格演示 ---------- */
+startGameBtn.onclick = ()=>{
+  gameArea.innerHTML=""; score.textContent="0";
+  const g=[...Array(9)].map(()=>COLORS[Math.random()*COLORS.length|0]);
+  g.forEach(c=>{const d=document.createElement("div");d.className="cell";d.style.background=c;d.textContent=c;gameArea.appendChild(d);});
+  const c=[...gameArea.children],i=(r,k)=>r*3+k;let s=0;
+  for(let r=0;r<3;r++)if(g[i(r,0)]===g[i(r,1)]&&g[i(r,1)]===g[i(r,2)]){[0,1,2].forEach(k=>c[i(r,k)].classList.add("highlight-triple"));s+=3;}
+  for(let k=0;k<3;k++)if(g[i(0,k)]===g[i(1,k)]&&g[i(1,k)]===g[i(2,k)]){[0,1,2].forEach(r=>c[i(r,k)].classList.add("highlight-triple"));s+=3;}
+  COLORS.forEach(col=>{const p=g.map((v,i)=>v===col?i:-1).filter(i=>i>=0);if(p.length===2){p.forEach(i=>c[i].classList.add("highlight-pair"));s+=1;}});
+  score.textContent=s;
 };
 </script>
-
 </body>
 </html>
