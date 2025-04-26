@@ -1,73 +1,117 @@
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <title>发圈对对碰 · 登录 / 注册</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <title>发圈对对碰 - 登录注册</title>
   <style>
-    body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,"Noto Sans",sans-serif;background:#f0f2f5;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
-    .card{width:320px;background:#fff;padding:24px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.1)}
-    h2{text-align:center;margin-top:0;margin-bottom:16px}
-    input{width:100%;padding:10px;border:1px solid #ddd;border-radius:4px;margin:6px 0;font-size:14px}
-    button{width:100%;padding:10px;background:#4f46e5;color:#fff;border:none;border-radius:4px;margin-top:10px;cursor:pointer;font-size:15px}
-    button:disabled{opacity:.6;cursor:not-allowed}
-    a{color:#4f46e5;text-decoration:none;font-size:14px}
-    .link{margin-top:10px;text-align:center}
-    .hide{display:none}
+    body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 20px; }
+    .container { max-width: 400px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    h2 { text-align: center; margin-bottom: 20px; }
+    input { width: 100%; padding: 8px; margin: 8px 0; }
+    button { width: 100%; padding: 10px; margin: 10px 0; }
+    #userDashboard, #adminDashboard { display: none; }
   </style>
 </head>
 <body>
-  <div class="card" id="loginCard">
-    <h2>账号登录</h2>
-    <input id="loginPhone" placeholder="手机号" />
-    <input id="loginPass" type="password" placeholder="密码" />
-    <button id="loginBtn">登录</button>
-    <p class="link">没有账号？<a href="#" id="toRegister">立即注册</a></p>
-  </div>
+  <div class="container">
+    <div id="loginView">
+      <h2>登录</h2>
+      <input id="loginPhone" placeholder="手机号"><br>
+      <input id="loginPass" type="password" placeholder="密码"><br>
+      <button id="loginBtn">登录</button>
+      <p>没有账号？<a href="#" onclick="showRegister()">注册</a></p>
+    </div>
 
-  <div class="card hide" id="registerCard">
-    <h2>用户注册</h2>
-    <input id="regPhone" placeholder="手机号" />
-    <input id="regPass" type="password" placeholder="密码(≥6位)" />
-    <button id="registerBtn">注册</button>
-    <p class="link">已有账号？<a href="#" id="toLogin">去登录</a></p>
+    <div id="registerView" style="display:none">
+      <h2>注册</h2>
+      <input id="regPhone" placeholder="手机号"><br>
+      <input id="regPass" type="password" placeholder="密码"><br>
+      <button id="registerBtn">注册</button>
+      <p>已有账号？<a href="#" onclick="showLogin()">登录</a></p>
+    </div>
+
+    <div id="userDashboard">
+      <h2>欢迎回来！</h2>
+      <p id="userInfo"></p>
+    </div>
+
+    <div id="adminDashboard">
+      <h2>管理员后台</h2>
+      <p>（后续开发）</p>
+    </div>
   </div>
 
 <script>
-const API = 'https://api.duidui.uk';
-// 切换卡片
-const $ = (id)=>document.getElementById(id);
-$('#toRegister').onclick = ()=>{ $('#loginCard').classList.add('hide'); $('#registerCard').classList.remove('hide'); };
-$('#toLogin').onclick    = ()=>{ $('#registerCard').classList.add('hide'); $('#loginCard').classList.remove('hide'); };
+const apiBase = 'https://api.duidui.uk';
 
-// 登录
-$('#loginBtn').onclick = async ()=>{
-  const phone=$('#loginPhone').value.trim(); const pass=$('#loginPass').value;
-  if(!/^[0-9]{11}$/.test(phone)||!pass){alert('请输入正确手机号/密码');return;}
-  $('#loginBtn').disabled=true;
-  try{
-    const r = await fetch(API+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,password:pass})});
-    const d = await r.json();
-    if(d.status==='success'){
-      sessionStorage.setItem('user',JSON.stringify({phone,balance:d.balance}));
-      location.href='userhome.html';
-    }else alert(d.message);
-  }catch(e){console.error(e);alert('登录请求失败');}
-  $('#loginBtn').disabled=false;
+function showLogin() {
+  document.getElementById('loginView').style.display = 'block';
+  document.getElementById('registerView').style.display = 'none';
+  document.getElementById('userDashboard').style.display = 'none';
+}
+
+function showRegister() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('registerView').style.display = 'block';
+  document.getElementById('userDashboard').style.display = 'none';
+}
+
+function showUserDashboard(user) {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('registerView').style.display = 'none';
+  document.getElementById('userDashboard').style.display = 'block';
+  document.getElementById('userInfo').innerHTML = `手机号: ${user.phone}<br>余额: ${user.balance}`;
+}
+
+// 注册按钮点击
+document.getElementById('registerBtn').onclick = async () => {
+  const phone = document.getElementById('regPhone').value.trim();
+  const pass = document.getElementById('regPass').value;
+  if (!phone || !pass) return alert('请填写手机号和密码');
+
+  try {
+    const res = await fetch(apiBase + '/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: phone, password: pass })
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      alert('注册成功，请登录');
+      showLogin();
+    } else {
+      alert(data.message);
+    }
+  } catch (err) {
+    console.error(err);
+    alert('注册失败，请稍后重试');
+  }
 };
 
-// 注册
-$('#registerBtn').onclick = async ()=>{
-  const phone=$('#regPhone').value.trim(); const pass=$('#regPass').value;
-  if(!/^[0-9]{11}$/.test(phone)||pass.length<6){alert('请输入11位手机号及≥6位密码');return;}
-  $('#registerBtn').disabled=true;
-  try{
-    const r = await fetch(API+'/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,password:pass})});
-    const d=await r.json();
-    if(d.status==='success'){alert('注册成功，请登录'); $('#toLogin').click();}
-    else alert(d.message);
-  }catch(e){console.error(e);alert('注册请求失败');}
-  $('#registerBtn').disabled=false;
+// 登录按钮点击
+document.getElementById('loginBtn').onclick = async () => {
+  const phone = document.getElementById('loginPhone').value.trim();
+  const pass = document.getElementById('loginPass').value;
+
+  try {
+    const res = await fetch(apiBase + '/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: phone, password: pass })
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      sessionStorage.setItem('currentUser', JSON.stringify({ phone: phone, role: 'user', balance: data.balance }));
+      showUserDashboard({ phone: phone, balance: data.balance });
+    } else {
+      alert(data.message);
+    }
+  } catch (err) {
+    console.error(err);
+    alert('登录失败，请稍后重试');
+  }
 };
 </script>
+
 </body>
 </html>
