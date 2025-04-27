@@ -96,22 +96,25 @@
     </div>
     <div class="main">
       <div class="sidebar">
-        <h3>充值</h3>
-        <input id="rechargeAmount" type="number" min="1" placeholder="充值金额">
-        <button id="rechargeBtn">提交充值</button>
-        <p id="rechargeStatus" style="color:#f60"></p>
-        <button id="refreshBalance">刷新资产</button>
-        <hr>
-        <h3>购买礼包</h3>
-        <select id="packPrice">
-          <option value="29.9">¥29.9 → 2包</option>
-          <option value="49.9">¥49.9 → 3包</option>
-          <option value="79.9">¥79.9 → 5包</option>
-          <option value="169.9">¥169.9 → 10包</option>
-          <option value="299.9">¥299.9 → 20包</option>
-        </select>
-        <button id="buyPackBtn">购买礼包</button>
-        <hr>
+        <!-- 隐藏充值和购买礼包 -->
+        <div style="display:none;">
+          <h3>充值</h3>
+          <input id="rechargeAmount" type="number" min="1" placeholder="充值金额">
+          <button id="rechargeBtn">提交充值</button>
+          <p id="rechargeStatus" style="color:#f60"></p>
+          <button id="refreshBalance">刷新资产</button>
+          <hr>
+          <h3>购买礼包</h3>
+          <select id="packPrice">
+            <option value="29.9">¥29.9 → 2包</option>
+            <option value="49.9">¥49.9 → 3包</option>
+            <option value="79.9">¥79.9 → 5包</option>
+            <option value="169.9">¥169.9 → 10包</option>
+            <option value="299.9">¥299.9 → 20包</option>
+          </select>
+          <button id="buyPackBtn">购买礼包</button>
+          <hr>
+        </div>
         <h3>本局开包数</h3>
         <select id="openCount"></select>
         <hr>
@@ -125,16 +128,6 @@
         <div id="scoreBoard">
           剩余包数: <span id="pkgLeft">0</span> |
           已开圈数: <span id="score">0</span>
-        </div>
-        <div id="priceList">
-          <h3>价格-包数对照</h3>
-          <ul>
-            <li>¥29.9 → 2 包</li>
-            <li>¥49.9 → 3 包</li>
-            <li>¥79.9 → 5 包</li>
-            <li>¥169.9 → 10 包</li>
-            <li>¥299.9 → 20 包</li>
-          </ul>
         </div>
         <div id="logArea"></div>
       </div>
@@ -367,7 +360,7 @@
       color = pickSafeColor();
     }
     // 3. 临近结束，若全家福尚未触发且能助力到达下限 → 强制全家福
-    if(color===undefined && pkgLeft <= 5 && !rewardUsed.fullhouse 
+    if(color===undefined && pkgLeft <= 2 && !rewardUsed.fullhouse 
        && extraSoFar + REWARD_VALUES.fullhouse <= needMax){
       color = pickMissingForFullhouse();
     }
