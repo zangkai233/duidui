@@ -1,31 +1,48 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<title>发圈对对碰·新版</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<style>
-/* —— 样式与前一版基本相同，略去注释 —— */
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f0f2f5;margin:0}
-.container{max-width:960px;margin:auto;padding:20px}
-.view{display:none}
-.auth-container{max-width:420px;margin:80px auto;background:#fff;padding:24px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
-.auth-container h2{text-align:center;margin-bottom:20px}
-.auth-container input,.auth-container button{width:100%;padding:10px;margin:8px 0;box-sizing:border-box}
-.auth-container a{color:#1677ff;cursor:pointer}
-.topbar{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:12px 20px;box-shadow:0 2px 4px rgba(0,0,0,.08);position:relative}
-#accountPanel{position:absolute;top:52px;right:20px;width:260px;background:#fff;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);overflow:hidden;height:0;transition:.3s;padding:0}
-#accountPanel.open{height:220px;padding:12px}
-.main{display:flex;margin-top:20px}
-.sidebar{width:260px;background:#fff;padding:20px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.08)}
-.sidebar input,.sidebar button,.sidebar select{width:100%;padding:8px;margin:8px 0;box-sizing:border-box}
-.content{flex:1;padding:0 24px}
-#gameArea{display:grid;grid-template-columns:repeat(3,80px);grid-gap:12px;margin-top:20px;min-height:264px}
-.cell{width:80px;height:80px;border-radius:50%;display:flex;justify-content:center;align-items:center;font-weight:bold;font-size:14px;color:#fff;opacity:0;transform:scale(.3);transition:.3s}
-.cell.show{opacity:1;transform:scale(1)}
-#scoreBoard{margin-top:12px;font-size:16px}
-#logArea{height:160px;background:#fff;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-top:20px;padding:10px;overflow:auto;font-size:13px;line-height:1.45}
-</style>
+  <meta charset="UTF-8">
+  <title>发圈对对碰·完整版（动态智能封装）</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      background:#f0f2f5;margin:0}
+    .container{max-width:960px;margin:auto;padding:20px}
+    .view{display:none}
+    .auth-container{max-width:420px;margin:80px auto;background:#fff;padding:24px;
+      border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+    .auth-container h2{text-align:center;margin-bottom:20px}
+    .auth-container input,.auth-container button{width:100%;padding:10px;margin:8px 0;
+      box-sizing:border-box}
+    .auth-container a{color:#1677ff;cursor:pointer}
+    .topbar{display:flex;justify-content:space-between;align-items:center;
+      background:#fff;padding:12px 20px;box-shadow:0 2px 4px rgba(0,0,0,.08);
+      position:relative}
+    #accountPanel{position:absolute;top:52px;right:20px;width:260px;background:#fff;
+      border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);overflow:hidden;
+      height:0;transition:.3s;padding:0}
+    #accountPanel.open{height:220px;padding:12px}
+    .main{display:flex;margin-top:20px}
+    .sidebar{width:260px;background:#fff;padding:20px;border-radius:6px;
+      box-shadow:0 2px 6px rgba(0,0,0,.08)}
+    .sidebar input,.sidebar button,.sidebar select{width:100%;padding:8px;
+      margin:8px 0;box-sizing:border-box}
+    .content{flex:1;padding:0 24px}
+    #gameArea{display:grid;grid-template-columns:repeat(3,80px);
+      grid-gap:12px;margin-top:20px;min-height:264px}
+    .cell{width:80px;height:80px;border-radius:50%;display:flex;
+      justify-content:center;align-items:center;font-weight:bold;
+      font-size:14px;opacity:0;transform:scale(.3);transition:.3s}
+    .cell.show{opacity:1;transform:scale(1)}
+    #scoreBoard{margin-top:12px;font-size:16px}
+    #priceList{margin-top:16px;background:#fff;padding:12px;border-radius:6px;
+      box-shadow:0 1px 3px rgba(0,0,0,.08)}
+    #priceList ul{list-style:none;padding-left:0;margin:0}
+    #priceList li{margin:4px 0}
+    #logArea{height:160px;background:#fff;border-radius:6px;
+      box-shadow:0 1px 3px rgba(0,0,0,.08);margin-top:20px;padding:10px;
+      overflow:auto;font-size:13px;line-height:1.45}
+  </style>
 </head>
 <body>
 <div class="container">
@@ -48,6 +65,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
     <p>已有账号？<a id="toLogin">登录</a></p>
   </div>
 
+  <!-- 管理员 -->
+  <div id="adminView" class="view">
+    <div class="topbar">
+      <div>管理员审核</div>
+      <button id="logoutAdmin">退出登录</button>
+    </div>
+    <div class="content">
+      <h3>待审订单</h3>
+      <ul id="orderList"></ul>
+    </div>
+  </div>
+
   <!-- 游戏界面 -->
   <div id="gameView" class="view">
     <div class="topbar">
@@ -58,15 +87,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
         <div>余额:  <span id="accountBalance"></span> 元</div>
         <div>礼包:  <span id="accountBags"></span> 包</div>
         <div>总积分: <span id="accountTotal"></span></div>
-        <div>积分兑换: <input id="redeemPoints" type="number" min="1" placeholder="要兑换的积分" style="width:60px;"> <button id="redeemBtn" style="padding:2px 6px;">兑换</button></div>
+        <div>积分兑换:
+          <input id="redeemPoints" type="number" min="1" placeholder="要兑换的积分" style="width:60px;">
+          <button id="redeemBtn" style="padding:2px 6px;">兑换</button>
+        </div>
         <button id="logoutBtn">退出登录</button>
       </div>
     </div>
-
     <div class="main">
-      <!-- 侧边栏 -->
       <div class="sidebar">
-        <h3>充值</h3><input id="rechargeAmount" type="number" min="1" placeholder="充值金额"><button id="rechargeBtn">提交充值</button><p id="rechargeStatus" style="color:#f60"></p><button id="refreshBalance">刷新资产</button>
+        <h3>充值</h3>
+        <input id="rechargeAmount" type="number" min="1" placeholder="充值金额">
+        <button id="rechargeBtn">提交充值</button>
+        <p id="rechargeStatus" style="color:#f60"></p>
+        <button id="refreshBalance">刷新资产</button>
         <hr>
         <h3>购买礼包</h3>
         <select id="packPrice">
@@ -79,130 +113,371 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
         <button id="buyPackBtn">购买礼包</button>
         <hr>
         <h3>本局开包数</h3>
-        <select id="openCount">
-          <option value="2">2 包</option>
-          <option value="3">3 包</option>
-          <option value="5">5 包</option>
-          <option value="10">10 包</option>
-          <option value="20">20 包</option>
-        </select>
+        <select id="openCount"></select>
         <hr>
         <h3>许愿色</h3>
         <select id="wishColorSelect"></select>
       </div>
-
-      <!-- 主内容 -->
       <div class="content">
         <button id="startGameBtn">开始游戏</button>
         <button id="manualClearBtn">手动清台</button>
         <div id="gameArea"></div>
-        <div id="scoreBoard">剩余包数: <span id="pkgLeft">0</span> | 得分: <span id="score">0</span></div>
+        <div id="scoreBoard">
+          剩余包数: <span id="pkgLeft">0</span> |
+          已开圈数: <span id="score">0</span>
+        </div>
+        <div id="priceList">
+          <h3>价格-包数对照</h3>
+          <ul>
+            <li>¥29.9 → 2 包</li>
+            <li>¥49.9 → 3 包</li>
+            <li>¥79.9 → 5 包</li>
+            <li>¥169.9 → 10 包</li>
+            <li>¥299.9 → 20 包</li>
+          </ul>
+        </div>
         <div id="logArea"></div>
       </div>
-    </div>
-  </div>
-
-  <!-- 管理员 -->
-  <div id="adminView" class="view">
-    <div class="topbar">
-      <div>管理员审核</div>
-      <button id="logoutAdmin">退出登录</button>
-    </div>
-    <div class="content">
-      <h3>待审订单</h3>
-      <ul id="orderList"></ul>
     </div>
   </div>
 </div>
 
 <script>
-/* ---------------- 配置与常量 ---------------- */
-const apiBase="https://api.duidui.uk";
-const COLORS=["红","橙","黄","绿","蓝","紫","粉","黑","白","灰"];
-const COLOR_HEX={红:"#ff4d4f",橙:"#ffa940",黄:"#ffec3d",绿:"#73d13d",蓝:"#40a9ff",紫:"#9254de",粉:"#ff85c0",黑:"#595959",白:"#ffffff",灰:"#8c8c8c"};
-const BRIGHT=new Set(["黄","白"]);
-/* ---------------- 工具 ---------------- */
-const $=id=>document.getElementById(id);
-function show(id){["loginView","registerView","gameView","adminView"].forEach(v=>$(v).style.display=v===id?"block":"none");}
-function setUser(u){sessionStorage.setItem("u",JSON.stringify(u));}
-function getUser(){return JSON.parse(sessionStorage.getItem("u")||"null");}
-function clearUser(){sessionStorage.removeItem("u");}
-function log(msg){const d=document.createElement("div");d.textContent=msg;$("logArea").appendChild(d);$("logArea").scrollTop=$("logArea").scrollHeight;}
-function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
-/* ---------------- 初始化 ---------------- */
-window.onload=()=>{COLORS.forEach(c=>{const o=document.createElement("option");o.value=c;o.textContent=c;$("wishColorSelect").appendChild(o);});const u=getUser();u?afterLogin(u.role,u.phone,u.extra):show("loginView");};
-/* ---------------- 登录/注册 ---------------- */
-$("toRegister").onclick=()=>show("registerView");
-$("toLogin").onclick   =()=>show("loginView");
-$("registerBtn").onclick=async()=>{const p=$("regPhone").value.trim(),pwd=$("regPass").value;if(!p||!pwd)return alert("填完整");const r=await fetch(apiBase+"/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phone:p,password:pwd})});const d=await r.json();d.status==="success"?(alert("注册成功"),show("loginView")):alert(d.message);};
-$("loginBtn").onclick=async()=>{const p=$("loginPhone").value.trim(),pwd=$("loginPass").value;if(!p||!pwd)return alert("填完整");const r=await fetch(apiBase+"/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phone:p,password:pwd})});const d=await r.json();if(d.status!="success")return alert(d.message);afterLogin(d.role||"user",p,d);};
-/* ---------------- 登录成功处理 ---------------- */
-function afterLogin(role,phone,extra={}){setUser({role,phone});if(role==="admin"){loadOrders();show("adminView");}else{$("accountPhone").textContent=phone;$("accountBalance").textContent=(extra.balance||0).toFixed(2);$("accountBags").textContent=extra.bags||0;$("accountTotal").textContent=extra.total_score||0;show("gameView");}}
-$("logoutBtn").onclick=$("logoutAdmin").onclick=()=>{clearUser();show("loginView");};
-$("accountToggle").onclick=()=>$('accountPanel').classList.toggle('open');
-/* ---------------- 资产刷新 ---------------- */
-$("refreshBalance").onclick=fetchProfile;
-async function fetchProfile(){const u=getUser();if(!u)return;const r=await fetch(`${apiBase}/profile?phone=${u.phone}`);const d=await r.json();if(d.status==="success"){ $("accountBalance").textContent=d.balance.toFixed(2);$("accountBags").textContent=d.bags;$("accountTotal").textContent=d.total_score;}}
+  const apiBase = "https://api.duidui.uk";
+  const COLORS = ["红","橙","黄","绿","蓝","紫","粉","黑","白","灰"];
+  const COLOR_HEX = {红:"#ff4d4f",橙:"#ffa940",黄:"#ffec3d",绿:"#73d13d",蓝:"#40a9ff",紫:"#9254de",粉:"#ff85c0",黑:"#595959",白:"#ffffff",灰:"#8c8c8c"};
+  const BRIGHT = new Set(["黄","白"]);
+  const REWARD_VALUES = {wish:1, pair:1, triple:3, fullhouse:5};
+  const tableMin = {2:2,3:4,5:7,10:15,20:28};
+  const tableMax = {2:3,3:5,5:8,10:17,20:32};
+  const $ = id => document.getElementById(id);
 
-/* ---------------- 充值/购买礼包 ---------------- */
-$("rechargeBtn").onclick=async()=>{const a=parseFloat($("rechargeAmount").value);if(isNaN(a)||a<=0)return alert("金额无效");$("rechargeStatus").textContent="客服审核中";const u=getUser();await fetch(apiBase+"/order",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phone:u.phone,amount:a})});};
-$("buyPackBtn").onclick=async()=>{const price=parseFloat($("packPrice").value),u=getUser();const r=await fetch(apiBase+"/buy_pack",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phone:u.phone,price})});const d=await r.json();if(d.status!="success")return alert(d.message);$("accountBalance").textContent=d.balance.toFixed(2);$("accountBags").textContent=d.bags;alert("购买成功");};
+  // 根据初始包数返回目标区间
+  function getTargetRange(n) {
+    if (tableMin[n]!==undefined) return {min:tableMin[n], max:tableMax[n]};
+    if (n > 20) return {min:Math.floor(n*1.4), max:Math.ceil(n*1.6)};
+    if (n > 10) return {min:Math.floor(n*1.35), max:Math.ceil(n*1.5)};
+    return {min:tableMin[5], max:tableMax[5]};
+  }
 
-/* ---------------- 积分兑换功能 ---------------- */
-$("redeemBtn").onclick=async()=>{
-  const pts = parseInt($("redeemPoints").value,10);
-  if(isNaN(pts)||pts<=0) return alert("请输入有效积分");
-  const u=getUser();
-  // 调用后端兑换接口
-  const res=await fetch(apiBase+"/redeem_points",{
-    method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({phone:u.phone,points:pts})
-  });
-  const d=await res.json();
-  if(d.status!="success") return alert(d.message);
-  // 更新面板
-  $("accountTotal").textContent=d.total_score;
-  $("accountBags").textContent=d.bags;
-  alert(`兑换成功：消耗 ${pts} 积分，获得 ${pts*8} 包`);
-};
+  function show(view){
+    ["loginView","registerView","gameView","adminView"]
+      .forEach(v=>$(v).style.display=v===view?"block":"none");
+  }
+  function log(msg){
+    const d=document.createElement("div");
+    d.textContent=msg;
+    $("logArea").appendChild(d);
+    $("logArea").scrollTop = $("logArea").scrollHeight;
+  }
+  function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+  function setUser(u){ sessionStorage.setItem("u",JSON.stringify(u)); }
+  function getUser(){ return JSON.parse(sessionStorage.getItem("u")||"null"); }
+  function clearUser(){ sessionStorage.removeItem("u"); }
 
-/* ---------------- 管理员审核 ---------------- */
-async function loadOrders(){const r=await fetch(apiBase+"/orders");const d=await r.json();if(d.status!="success")return;$("orderList").innerHTML="";d.orders.forEach(o=>{const li=document.createElement("li");li.innerHTML=`手机号:${o.phone} 金额:${o.amount}`;const b=document.createElement("button");b.textContent="批准";b.onclick=()=>approve(o.id);li.appendChild(b);$("orderList").appendChild(li);});}
-async function approve(id){const r=await fetch(apiBase+"/order/approve",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({orderId:id})});const d=await r.json();d.status==="success"?loadOrders():alert(d.message);}
+  async function fetchProfile(){
+    const u=getUser(); if(!u) return;
+    const res = await fetch(`${apiBase}/profile?phone=${u.phone}`);
+    const d = await res.json();
+    if(d.status==="success"){
+      $("accountBalance").textContent = d.balance.toFixed(2);
+      $("accountBags").textContent = d.bags;
+      $("accountTotal").textContent = d.total_score;
+    }
+  }
 
-/* =====================================================================
-                             游戏逻辑
-   =====================================================================*/
-let board=[],pkgLeft=0,score=0,wishColor="",busy=false,gameEnded=false;
-let rewardUsed={wish:false,triple:false,pair:false,clear:false,family:false};
-let opensDone=0,desiredCount=0;
+  window.onload = ()=>{
+    for(let i=2;i<=60;i++){
+      const o=document.createElement("option");
+      o.value=i; o.textContent=`${i} 包`;
+      $("openCount").appendChild(o);
+    }
+    COLORS.forEach(c=>{
+      const o=document.createElement("option");
+      o.value=c; o.textContent=c;
+      $("wishColorSelect").appendChild(o);
+    });
+    const u=getUser();
+    if(!u) return show("loginView");
+    if(u.role==="admin"){ loadOrders(); show("adminView"); }
+    else{ show("gameView"); fetchProfile(); }
+  };
 
-// 开局
-$("startGameBtn").onclick=async()=>{if(busy)return;busy=true;const want=parseInt($("openCount").value,10);desiredCount=want;opensDone=0;const u=getUser();const r=await fetch(apiBase+"/start_game",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phone:u.phone,count:want})});const d=await r.json();if(d.status!="success"){busy=false;return alert(d.message);}pkgLeft=d.initial;score=0;board=Array(9).fill(null);wishColor=$("wishColorSelect").value;rewardUsed={wish:false,triple:false,pair:false,clear:false,family:false};gameEnded=false;$("accountBags").textContent=d.bags_left;$("pkgLeft").textContent=pkgLeft;$("score").textContent=score;$("gameArea").innerHTML="";for(let i=0;i<9;i++){const div=document.createElement("div");div.className="cell";$("gameArea").appendChild(div);}$("logArea").innerHTML="";log(`🎮 开始！目标开包数：${desiredCount} 包，许愿色：${wishColor}`);await gameLoop();await endGame();};
+  // 注册 / 登录 / 登出
+  $("toRegister").onclick = ()=> show("registerView");
+  $("toLogin").onclick    = ()=> show("loginView");
+  $("registerBtn").onclick = async ()=>{
+    const p=$("regPhone").value.trim(), pwd=$("regPass").value;
+    if(!p||!pwd) return alert("请填写完整");
+    const r=await fetch(apiBase+"/register", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({phone:p,password:pwd})
+    });
+    const d=await r.json();
+    if(d.status==="success"){ alert("注册成功"); show("loginView"); }
+    else alert(d.message);
+  };
+  $("loginBtn").onclick = async ()=>{
+    const p=$("loginPhone").value.trim(), pwd=$("loginPass").value;
+    if(!p||!pwd) return alert("请填写完整");
+    const r=await fetch(apiBase+"/login", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({phone:p,password:pwd})
+    });
+    const d=await r.json();
+    if(d.status!=="success") return alert(d.message);
+    setUser({role:d.role,phone:p});
+    if(d.role==="admin"){ loadOrders(); show("adminView"); }
+    else{ show("gameView"); fetchProfile(); }
+  };
+  $("logoutBtn").onclick = $("logoutAdmin").onclick = ()=>{
+    clearUser(); show("loginView");
+  };
+  $("accountToggle").onclick = ()=> $("accountPanel").classList.toggle("open");
 
-// 手动清台
-$("manualClearBtn").onclick=()=>{if(busy&&!gameEnded)manualClear();};
+  // 充值 & 购买
+  $("refreshBalance").onclick = fetchProfile;
+  $("rechargeBtn").onclick = async ()=>{
+    const a=parseFloat($("rechargeAmount").value);
+    if(isNaN(a)||a<=0) return alert("金额无效");
+    $("rechargeStatus").textContent="客服审核中";
+    const u=getUser();
+    await fetch(apiBase+"/order", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({phone:u.phone,amount:a})
+    });
+  };
+  $("buyPackBtn").onclick = async ()=>{
+    const pr=parseFloat($("packPrice").value), u=getUser();
+    const r=await fetch(apiBase+"/buy_pack", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({phone:u.phone,price:pr})
+    });
+    const d=await r.json();
+    if(d.status!=="success") return alert(d.message);
+    $("accountBalance").textContent = d.balance.toFixed(2);
+    $("accountBags").textContent    = d.bags;
+    alert("购买成功");
+  };
 
-// 自动开包循环
-async function gameLoop(){while(opensDone<desiredCount&&pkgLeft>0&&!gameEnded){await openOnePackage();await sleep(700);}}
+  // 管理员审核
+  async function loadOrders(){
+    const r=await fetch(apiBase+"/orders"), d=await r.json();
+    if(d.status!=="success") return;
+    $("orderList").innerHTML="";
+    d.orders.forEach(o=>{
+      const li=document.createElement("li");
+      li.textContent=`手机号:${o.phone} 金额:${o.amount}`;
+      const btn=document.createElement("button");
+      btn.textContent="批准";
+      btn.onclick=async ()=>{
+        const rr=await fetch(apiBase+"/order/approve", {
+          method:"POST", headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({orderId:o.id})
+        });
+        const dd=await rr.json();
+        if(dd.status==="success") loadOrders();
+        else alert(dd.message);
+      };
+      li.appendChild(btn);
+      $("orderList").appendChild(li);
+    });
+  }
 
-// 结束流程：提交积分并刷新资产
-async function endGame(){if(score>0){const u=getUser();await fetch(apiBase+"/submit_score",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phone:u.phone,score})});}fetchProfile();busy=false;log("🎉 本局结束");}
+  // 游戏状态
+  let board=[], pkgLeft=0, score=0, wishColor="";
+  let rewardUsed={}, opensDone=0, desiredCount=0, colorCounts={};
 
-// 开一包
-async function openOnePackage(){if(gameEnded||opensDone>=desiredCount||pkgLeft<=0) return;const idx=board.indexOf(null);if(idx===-1){removeIndices([...Array(9).keys()]);board=Array(9).fill(null);log("⚠️ 台面满，自动清台");return;}opensDone++;pkgLeft--;$("pkgLeft").textContent=pkgLeft;const color=COLORS[Math.random()*COLORS.length|0];board[idx]=color;drawCell(idx,color,true);log(`📦 开包${opensDone}/${desiredCount}：抽到「${color}」`);if(color===wishColor&&!rewardUsed.wish){rewardUsed.wish=true;pkgLeft++;score++;log("🎯 许愿色 +1 包");}await checkRewardsLoop();$("pkgLeft").textContent=pkgLeft;$("score").textContent=score;}
+  // 开始游戏
+  $("startGameBtn").onclick = async ()=>{
+    desiredCount = parseInt($("openCount").value,10);
+    wishColor = $("wishColorSelect").value;
+    opensDone = 0; score = 0; colorCounts = {};
+    rewardUsed = {wish:false,pair:false,triple:false,fullhouse:false};
 
-// 循环检查奖励
-async function checkRewardsLoop(){let trig=true;while(trig&&!gameEnded){trig=false;const triples=findTriples();if(triples.length&&!rewardUsed.triple){rewardUsed.triple=true;pkgLeft+=3;score+=3;log("🔺 三连 +3 包");removeIndices(triples);await sleep(400);trig=true;continue;}const pairs=findPairs();if(pairs.length&&!rewardUsed.pair){rewardUsed.pair=true;pkgLeft+=1;score+=1;log("🤝 对碰 +1 包");removeIndices(pairs);await sleep(400);trig=true;continue;}if(new Set(board.filter(v=>v)).size===9&&!rewardUsed.family){rewardUsed.family=true;pkgLeft+=5;score+=5;log("🧿 全家福 +5 包");await sleep(200);trig=true;}}}
+    const u=getUser();
+    const r=await fetch(apiBase+"/start_game", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({phone:u.phone,count:desiredCount})
+    });
+    const d=await r.json();
+    if(d.status!=="success") return alert(d.message);
+    pkgLeft = d.initial;
 
-// 手动清台
-function manualClear(){removeIndices([...Array(9).keys()]);board=Array(9).fill(null);log("🧹 手动清台");if(!rewardUsed.clear){rewardUsed.clear=true;pkgLeft+=3;score+=3;log("💥 清台 +3 包");}gameEnded=true;}
+    board = Array(9).fill(null);
+    $("pkgLeft").textContent = pkgLeft;
+    $("score").textContent  = score;
+    $("accountBags").textContent = d.bags_left;
+    $("gameArea").innerHTML = "";
+    for(let i=0;i<9;i++){
+      const c=document.createElement("div"); c.className="cell";
+      $("gameArea").appendChild(c);
+    }
+    $("logArea").innerHTML="";
+    log(`🎮 游戏开始：${desiredCount}包，许愿色「${wishColor}」`);
 
-/* 辅助函数 */
-function drawCell(i,color,newAdd=false){const d=$("gameArea").children[i];if(color===null){d.textContent="";d.style.background="#e8e8e8";d.style.color="#000";d.classList.remove("show");}else{d.textContent=color;d.style.background=COLOR_HEX[color];d.style.color=BRIGHT.has(color)?"#000":"#fff";if(newAdd)setTimeout(()=>d.classList.add("show"),20);else d.classList.add("show");}}
-function removeIndices(arr){arr.forEach(i=>{board[i]=null;drawCell(i,null);});}
-function findTriples(){const res=[];const idx=(r,c)=>r*3+c;for(let r=0;r<3;r++)if(board[idx(r,0)]&&board[idx(r,0)]===board[idx(r,1)]&&board[idx(r,1)]===board[idx(r,2)])res.push(idx(r,0),idx(r,1),idx(r,2));for(let c=0;c<3;c++)if(board[idx(0,c)]&&board[idx(0,c)]===board[idx(1,c)]&&board[idx(1,c)]===board[idx(2,c)])res.push(idx(0,c),idx(1,c),idx(2,c));return[...new Set(res)];}
-function findPairs(){const cnt={},p=[];board.forEach((v,i)=>{if(v)cnt[v]=(cnt[v]||[]).concat(i);} );Object.values(cnt).forEach(a=>{if(a.length===2)p.push(...a);} );return p;}
+    while(pkgLeft>0){
+      await openOnePackage();
+      await sleep(700);
+    }
+    log("🎉 本局结束，本色统计：");
+    COLORS.forEach(c=>{ if(colorCounts[c]) log(`  ${c}: ${colorCounts[c]}`); });
+    await fetch(apiBase+"/submit_score", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({phone:getUser().phone,score})
+    });
+  };
+
+  // 智能动态开包
+  async function openOnePackage(){
+    const idx = board.indexOf(null);
+    if(idx===-1){
+      rewardUsed={wish:false,pair:false,triple:false,fullhouse:false};
+      removeAll(); log("⚠️ 台面满，自动清台"); return;
+    }
+
+    // 计算额外已得
+    const extraSoFar = opensDone - desiredCount;
+    // 目标区间
+    const {min: tgMin, max: tgMax} = getTargetRange(desiredCount);
+    const needMin = tgMin - desiredCount;
+    const needMax = tgMax - desiredCount;
+    // 剩余可触发奖励值
+    let remMax=0;
+    for(const k in REWARD_VALUES) if(!rewardUsed[k]) remMax += REWARD_VALUES[k];
+
+    let color;
+
+    // 1. 若再不触发，潜力不足 → 强制触发
+    if(extraSoFar + remMax < needMin){
+      if(!rewardUsed.fullhouse && canFullhouse()){
+        color = pickMissingForFullhouse();
+      } else {
+        const tri = canTrigger("triple");
+        if(!rewardUsed.triple && tri) color = tri;
+        else {
+          const pr = canTrigger("pair");
+          if(!rewardUsed.pair && pr) color = pr;
+          else if(!rewardUsed.wish) color = wishColor;
+        }
+      }
+    }
+    // 2. 若可能超上限 → 选安全色
+    if(color===undefined && extraSoFar > needMax){
+      color = pickSafeColor();
+    }
+    // 3. 临近结束，若全家福尚未触发且能助力到达下限 → 强制全家福
+    if(color===undefined && pkgLeft <= 5 && !rewardUsed.fullhouse 
+       && extraSoFar + REWARD_VALUES.fullhouse <= needMax){
+      color = pickMissingForFullhouse();
+    }
+    // 4. 否则随机
+    if(color===undefined){
+      color = COLORS[Math.floor(Math.random()*COLORS.length)];
+    }
+
+    // 放置
+    opensDone++; pkgLeft--; $("pkgLeft").textContent = pkgLeft;
+    board[idx] = color; drawCell(idx,color,true);
+    log(`📦 开包${opensDone}: 抽到「${color}」`);
+    score++; colorCounts[color] = (colorCounts[color]||0) + 1;
+    $("score").textContent = score;
+
+    // 奖励判定
+    if(color===wishColor && !rewardUsed.wish){
+      rewardUsed.wish = true; pkgLeft++; log("🎯 许愿 +1包");
+    }
+    let loop=true;
+    while(loop){
+      loop=false;
+      const t = findTriples();
+      if(t.length && !rewardUsed.triple){
+        rewardUsed.triple = true; pkgLeft+=3; log("🔺 三连 +3包");
+        removeIndices(t); loop=true; continue;
+      }
+      const p = findPairs();
+      if(p.length && !rewardUsed.pair){
+        rewardUsed.pair = true; pkgLeft+=1; log("🤝 对碰 +1包");
+        removeIndices(p); loop=true; continue;
+      }
+      if(new Set(board.filter(v=>v)).size===9 && !rewardUsed.fullhouse){
+        rewardUsed.fullhouse = true; pkgLeft+=5; log("🧿 全家福 +5包");
+        loop=true; continue;
+      }
+    }
+  }
+
+  // 辅助
+  function canTrigger(type){
+    if(type==="triple"){
+      const lines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8]];
+      for(const l of lines){
+        const vals=l.map(i=>board[i]).filter(v=>v);
+        if(vals.length===2 && vals[0]===vals[1]) return vals[0];
+      }
+    }
+    if(type==="pair"){
+      const cnt={};
+      board.forEach(v=>v&&(cnt[v]=(cnt[v]||0)+1));
+      for(const c in cnt) if(cnt[c]===1) return c;
+    }
+    return null;
+  }
+  function canFullhouse(){
+    return new Set(board.filter(v=>v)).size===8;
+  }
+  function pickMissingForFullhouse(){
+    const used=new Set(board.filter(v=>v));
+    for(const c of COLORS) if(!used.has(c)) return c;
+    return COLORS[0];
+  }
+  function pickSafeColor(){
+    for(const c of COLORS){
+      if(c!==wishColor && !canTrigger("triple") && !canTrigger("pair")){
+        return c;
+      }
+    }
+    return COLORS[0];
+  }
+
+  function drawCell(i,c,anim=false){
+    const d=$("gameArea").children[i];
+    if(c===null){
+      d.textContent=""; d.style.background="#add8e6"; d.style.color="#000"; d.classList.remove("show");
+    } else {
+      d.textContent=c; d.style.background=COLOR_HEX[c]; 
+      d.style.color=BRIGHT.has(c)?"#000":"#fff";
+      if(anim) setTimeout(()=>d.classList.add("show"),20);
+      else d.classList.add("show");
+    }
+  }
+  function removeIndices(arr){ arr.forEach(i=>{ board[i]=null; drawCell(i,null); }); }
+  function removeAll(){ board=Array(9).fill(null); removeIndices([...Array(9).keys()]); }
+
+  function findTriples(){
+    const res=[], lines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8]];
+    for(const l of lines){
+      const [a,b,c]=l;
+      if(board[a]&&board[a]===board[b]&&board[b]===board[c]){
+        res.push(a,b,c);
+      }
+    }
+    return [...new Set(res)];
+  }
+  function findPairs(){
+    const cnt={}, out=[];
+    board.forEach((v,i)=>v&&(cnt[v]=(cnt[v]||[]).concat(i)));
+    Object.values(cnt).forEach(a=>{ if(a.length===2) out.push(...a); });
+    return out;
+  }
+
+  // 手动清台
+  $("manualClearBtn").onclick = ()=>{
+    if(pkgLeft===0 && opensDone===0) return;
+    removeAll(); log("🧹 手动清台");
+    
+    $("pkgLeft").textContent = pkgLeft;
+  };
 </script>
 </body>
 </html>
