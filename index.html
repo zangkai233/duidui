@@ -137,8 +137,8 @@
 
 <script>
   const apiBase = "https://api.duidui.uk";
-  const COLORS = ["红","橙","黄","绿","蓝","紫","粉","黑","白","灰"];
-  const COLOR_HEX = {红:"#ff4d4f",橙:"#ffa940",黄:"#ffec3d",绿:"#73d13d",蓝:"#40a9ff",紫:"#9254de",粉:"#ff85c0",黑:"#595959",白:"#ffffff",灰:"#8c8c8c"};
+  const COLORS = ["红","橙","黄","绿","蓝","紫","粉","黑","白","浅蓝"];
+  const COLOR_HEX = {红:"#ff4d4f",橙:"#ffa940",黄:"#ffec3d",绿:"#73d13d",蓝:"#40a9ff",紫:"#9254de",粉:"#ff85c0",黑:"#595959",白:"#ffffff",灰:"#8c8c8c",浅蓝:"#91d5ff"}
   const BRIGHT = new Set(["黄","白"]);
   const REWARD_VALUES = {wish:1, pair:1, triple:3, fullhouse:5};
   const tableMin = {2:2,3:4,5:7,10:15,20:28};
@@ -148,8 +148,8 @@
   // 根据初始包数返回目标区间
   function getTargetRange(n) {
     if (tableMin[n]!==undefined) return {min:tableMin[n], max:tableMax[n]};
-    if (n > 20) return {min:Math.floor(n*1.4), max:Math.ceil(n*1.6)};
-    if (n > 10) return {min:Math.floor(n*1.35), max:Math.ceil(n*1.5)};
+    if (n > 20) return {min:Math.floor(n*1.9), max:Math.ceil(n*1.2)};
+    if (n > 9) return {min:Math.floor(n*1.9), max:Math.ceil(n*2)};
     return {min:tableMin[5], max:tableMax[5]};
   }
 
